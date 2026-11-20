@@ -1,0 +1,7 @@
+# Carnet de Scroll
+
+Transforme les recettes vues sur TikTok, Instagram et YouTube Shorts en fiches imprimables et en livre de recettes.
+
+Version d'ébauche : un seul fichier `index.html`, sans serveur. Les recettes restent dans le navigateur.
+
+IA : renseigner l'URL du webhook n8n dans `const N8N_WEBHOOK` (index.html).
