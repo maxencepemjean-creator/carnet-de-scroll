@@ -4,4 +4,4 @@ Transforme les recettes vues sur TikTok, Instagram et YouTube Shorts en fiches i
 
 Version d'ébauche : un seul fichier `index.html`, sans serveur. Les recettes restent dans le navigateur.
 
-IA : renseigner l'URL du webhook n8n dans `const N8N_WEBHOOK` (index.html).
+IA : webhook n8n « [CDS] 01 - IA Carnet de Scroll » (`const N8N_WEBHOOK` dans index.html).

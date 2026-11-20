@@ -466,13 +466,13 @@ function save(){
 function cur(){ return state.recipes.find(r=>r.id===state.currentId) || state.recipes[0]; }
 
 /* ---------- capacités ---------- */
-/* IA hors de Claude : colle ici l'URL de ton webhook n8n (POST {prompt} -> {text}). Laisse vide pour le mode sans IA. */
-const N8N_WEBHOOK = "";
+/* IA hors de Claude : webhook n8n [CDS] 01 (POST {mode,...} -> {text}). Laisse vide pour le mode sans IA. */
+const N8N_WEBHOOK = "https://n8n.srv1136752.hstgr.cloud/webhook/carnet-recette";
 let sampleFn = null, downloads = null;
-async function askAI(prompt){
+async function askAI(prompt, payload){
   if(sampleFn) return (await sampleFn(prompt,{modelTier:"default"})).text;
   if(N8N_WEBHOOK){
-    const res = await fetch(N8N_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
+    const res = await fetch(N8N_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     if(!res.ok) throw new Error("webhook "+res.status);
     const j = await res.json(); return typeof j==="string" ? j : (j.text||j.output||JSON.stringify(j));
   }
@@ -668,7 +668,7 @@ document.getElementById("importForm").addEventListener("submit", async (ev)=>{
   try{
     if(hasAI()){
       const prompt = "Tu transformes le texte d'une vidéo de recette publiée sur "+PLATFORM_LABEL[p.plateforme]+" en fiche recette structurée.\nRéponds avec un JSON de cette forme : "+SCHEMA+"\n"+RULES+"\n\nTexte de la publication :\n\"\"\"\n"+caption.slice(0,6000)+"\n\"\"\"";
-      base = cleanRecipe(extractJSON(await askAI(prompt)));
+      base = cleanRecipe(extractJSON(await askAI(prompt, {mode:"extract", plateforme:p.plateforme, texte:caption.slice(0,6000)})));
     } else {
       base = naiveParse(caption);
       toast("Sans IA : découpage simple, vérifie la fiche.");
@@ -770,7 +770,7 @@ document.querySelectorAll("[data-adapt]").forEach(b=>b.addEventListener("click",
   try{
     const payload = {titre:r.titre, portions:r.portionsBase, prep:r.prep, cuisson:r.cuisson, difficulte:r.difficulte, ingredients:r.ingredients, etapes:r.etapes};
     const prompt = "Adapte cette recette pour en faire une version "+kind+". Garde l'esprit du plat, change seulement ce qui est nécessaire. Mets g:true sur chaque ingrédient ou étape que tu as modifié ou ajouté. Ajoute \" ("+kind+")\" à la fin du titre.\nRéponds avec un JSON de cette forme : "+SCHEMA+"\n"+RULES+"\n\nRecette :\n"+JSON.stringify(payload);
-    const a = cleanRecipe(extractJSON(await askAI(prompt)));
+    const a = cleanRecipe(extractJSON(await askAI(prompt, {mode:"adapt", kind, recette:payload})));
     const copy = Object.assign({}, r, a, {id:uid(), notes:"", style:Object.assign({}, r.style), source:Object.assign({}, r.source)});
     state.recipes.splice(state.recipes.indexOf(r)+1, 0, copy); state.currentId = copy.id; state.selected.push(copy.id);
     commit(); toast("Version "+kind+" créée. L'originale est toujours dans ton carnet.");
